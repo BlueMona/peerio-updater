@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "experimentalDecorators": true,
+    "allowJs": true,
+    "moduleResolution": "node",
+    "types": ["node"],
+    "typeRoots": [
+      "node_modules/@types"
+    ]
+  }
+}
