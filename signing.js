@@ -59,14 +59,14 @@ function verify(publicKeys, sig, text) {
  * Signs text with the given secret key, returning signature.
  *
  * Note that secret key is stored in the same format as signify,
- * but uses no KDF (kdf is 0x00 0x00), so signify doesn't support it.
+ * but requires rounds = 0, so it is unencrypted.
  *
  * Secret key format:
  *
  *   2 bytes - signature algorithm
- *   2 bytes - kdf algorithm (00 00)
+ *   2 bytes - kdf algorithm ('B', 'K')
  *   4 bytes - kdf rounds (00 00 00 00)
- *  16 bytes - salt (all zeroes)
+ *  16 bytes - salt (any bytes, ignored)
  *   8 bytes - checksum (SHA512(secret key))
  *   8 bytes - key num (random bytes, embedded in signature and public key)
  *  64 bytes - secret key
@@ -118,14 +118,19 @@ function parseSecretKey(secretKey) {
     }
 
     // Check KDF algorithm
-    if (k[2] !== 0 || k[3] !== 0) {
+    if (k[2] !== 66 /* 'B' */ || k[3] !== 75 /* 'K' */) {
         throw new Error('Unsupported KDF algorithm');
     }
 
     // Extract fields.
-    const checksum = k.subarray(24, 32);
-    const num = k.subarray(32, 40);
-    const key = k.subarray(40);
+    const rounds = k.slice(4, 8).readUInt32BE(0);
+    if (rounds !== 0) {
+        throw new Error('Rounds must be 0; unlock key before passing to sign.')
+    }
+
+    const checksum = k.slice(24, 32);
+    const num = Buffer.from(k.slice(32, 40));
+    const key = Buffer.from(k.slice(40, 104));
 
     // Verify key checksum.
     if (!nacl.verify(checksum, nacl.hash(key).subarray(0, 8))) {
@@ -154,6 +159,9 @@ function generateKeyPair() {
 
     publicKey[0] = secretKey[0] = 69; // 'E'
     publicKey[1] = secretKey[1] = 100; // 'd'
+
+    secretKey[2] = 66; // 'B'
+    secretKey[3] = 75; // 'K'
 
     publicKey.set(num, 2);
     secretKey.set(num, 32);
