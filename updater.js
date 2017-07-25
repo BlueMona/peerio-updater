@@ -151,7 +151,7 @@ class Updater extends EventEmitter {
                             return this._fetchManifest(release.assets[i].browser_download_url);
                         }
                     }
-                    throw new Error(`Release ${release.tagName} doesn't have ${MANIFEST_FILENAME}`);
+                    throw new Error(`Release ${release.tag_name} doesn't have ${MANIFEST_FILENAME}`);
                 } else {
                     console.log(`No new version on GitHub: have ${this.currentVersion} got ${release.tag_name} `)
                 }
