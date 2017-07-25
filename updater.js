@@ -126,11 +126,13 @@ class Updater extends EventEmitter {
 
     _fetchManifestFromGitHub(address) {
         // Fetch latest tag.
+        /*
         if (this.allowPrerelease) {
             // TODO: implement pre-release checking by fetching
             // the list of tags.
             throw new Error('Pre-releases are not implemented yet');
         }
+        */
 
         // Address given: github:PeerioTechnologies/peerio-desktop
         // Strip 'github:'
