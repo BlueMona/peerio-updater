@@ -5,6 +5,14 @@
 
 const nacl = require('tweetnacl');
 
+// Buffers don't verify that base64 encoding is correct before
+// decoding data. See https://github.com/nodejs/node/issues/8569
+function validateBase64(s) {
+    if (!(/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(s))) {
+        throw new TypeError('invalid encoding');
+    }
+}
+
 /**
  * Verifies signature.
  * Throws if signature is invalid.
@@ -15,6 +23,7 @@ const nacl = require('tweetnacl');
  */
 function verify(publicKeys, sig, text) {
     // Parse signature.
+    validateBase64(sig);
     const binsig = Buffer.from(sig, 'base64');
 
     // Check signature length.
