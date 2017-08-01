@@ -57,7 +57,7 @@ function getOriginalAppImagePath() {
     const appImagePath = process.env.APPIMAGE;
     return new Promise((fulfill, reject) => {
         if (!appImagePath) {
-            return reject('It seems that the app is not in AppImage fromat');
+            return reject('It seems that the app is not in AppImage format');
         }
         fs.access(appImagePath, fs.constants.W_OK, (err) => {
             if (err) {
