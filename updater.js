@@ -230,7 +230,7 @@ class Updater extends EventEmitter {
             case 'darwin':
                 throw new Error('Mac installation not implemented');
             case 'win32':
-                throw new Error('Windows installation not implemented');
+                install = require('./install-win');
             case 'linux':
                 install = require('./install-linux');
                 break;
