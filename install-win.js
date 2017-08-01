@@ -47,8 +47,11 @@ async function install(updatePath, restart) {
         if (err.code === 'UNKNOWN' || err.code === 'EACCES') {
             console.log('Trying to install with elevated privileges');
             try {
-                spawn(path.join(process.resourcesPath, "elevate.exe"),
-                    [updatePath].concat(args)).unref();
+                spawn(
+                    path.join(process.resourcesPath, "elevate.exe"),
+                    [updatePath].concat(args),
+                    { detached: true, stdio: 'ignore' }
+                ).unref();
             } catch (err) {
                 failed = true;
                 console.error('Failed to install update with elevated priveleges: ' + err.code);
