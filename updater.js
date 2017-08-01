@@ -229,8 +229,10 @@ class Updater extends EventEmitter {
         switch (process.platform) {
             case 'darwin':
                 throw new Error('Mac installation not implemented');
+                break;
             case 'win32':
                 install = require('./install-win');
+                break;
             case 'linux':
                 install = require('./install-linux');
                 break;
