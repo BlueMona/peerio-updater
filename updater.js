@@ -4,7 +4,7 @@ const path = require('path');
 const os = require('os');
 const crypto = require('crypto');
 const EventEmitter = require('events').EventEmitter;
-const { fetchJSON, fetchText, fetchFile } = require('./fetch');
+const { fetchJSON, fetchAllJSONPages, fetchText, fetchFile } = require('./fetch');
 const { verifyHash } = require('./hash');
 const { verifySize } = require('./size');
 const Manifest = require('./manifest');
@@ -125,39 +125,50 @@ class Updater extends EventEmitter {
     }
 
     _fetchManifestFromGitHub(address) {
-        // Fetch latest tag.
-        /*
-        if (this.allowPrerelease) {
-            // TODO: implement pre-release checking by fetching
-            // the list of tags.
-            throw new Error('Pre-releases are not implemented yet');
-        }
-        */
-
         // Address given: github:PeerioTechnologies/peerio-desktop
         // Strip 'github:'
         address = address.substring('github:'.length);
+        address = `https://api.github.com/repos/${address}/releases`;
 
-        console.log('Fetching', `https://api.github.com/repos/${address}/releases/latest`);
         // Fetch info about latest release
-        return fetchJSON(`https://api.github.com/repos/${address}/releases/latest`)
-            .then(release => {
-                console.log('Got release', release);
-                // GitHub can lie to us about the latest version, but if they do, they
-                // could also not serve the latest manifest, so there's no harm in
-                // checking this unsigned version number.
-                if (semver.gt(release.tag_name, this.currentVersion)) {
-                    // Find manifest.
-                    for (let i = 0; i < release.assets.length; i++) {
-                        if (release.assets[i].name === MANIFEST_FILENAME) {
-                            return this._fetchManifest(release.assets[i].browser_download_url);
-                        }
+        console.log('Fetching', address);
+        let promisedRelease;
+        if (!this.allowPrerelease) {
+            // No prereleases, so use a simple API endpoint which returns latest release.
+            promisedRelease = fetchJSON(address + '/latest');
+        } else {
+            // Prereleases require fetching all releases and finding the latest.
+            promisedRelease = fetchAllJSONPages(address)
+                .then(releases => releases.reduce((newest, cur) => {
+                    if (!newest || semver.gt(cur.tag_name, newest.tag_name)) {
+                        return cur;
+                    } else {
+                        return newest;
                     }
-                    throw new Error(`Release ${release.tag_name} doesn't have ${MANIFEST_FILENAME}`);
-                } else {
-                    console.log(`No new version on GitHub: have ${this.currentVersion} got ${release.tag_name} `)
+                }, null));
+        }
+
+        return promisedRelease.then(release => {
+            if (!release) {
+                console.log('No releases on GitHub');
+                return;
+            }
+            console.log('Got release', release);
+            // GitHub can lie to us about the latest version, but if they do, they
+            // could also not serve the latest manifest, so there's no harm in
+            // checking this unsigned version number.
+            if (semver.gt(release.tag_name, this.currentVersion)) {
+                // Find manifest.
+                for (let i = 0; i < release.assets.length; i++) {
+                    if (release.assets[i].name === MANIFEST_FILENAME) {
+                        return this._fetchManifest(release.assets[i].browser_download_url);
+                    }
                 }
-            });
+                throw new Error(`Release ${release.tag_name} doesn't have ${MANIFEST_FILENAME}`);
+            } else {
+                console.log(`No new version on GitHub: have ${this.currentVersion} got ${release.tag_name} `)
+            }
+        });
     }
 
     /**
