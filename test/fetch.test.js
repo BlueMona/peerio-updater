@@ -3,7 +3,7 @@ const os = require('os');
 const fs = require('fs');
 const crypto = require('crypto');
 const path = require('path');
-const { fetchJSON, fetchFile } = require('../fetch');
+const { fetchJSON, fetchAllJSONPages, fetchFile } = require('../fetch');
 const { verifyHash } = require('../hash');
 
 describe('Fetch', () => {
@@ -28,6 +28,11 @@ describe('Fetch', () => {
         fetchJSON('what is this I don\'t even')
             .then(() => done(new Error('Expected promise to reject due to bad address')))
             .catch(() => done())
+    });
+
+    it('should fetch multi-page JSON', () => {
+        return fetchAllJSONPages('https://api.github.com/repos/dchest/tweetnacl-js/issues?state=closed')
+            .then(json => { expect(json).to.have.lengthOf.above(125) });
     });
 
     it('should fetch a file', () => {

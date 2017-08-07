@@ -158,6 +158,41 @@ function fetchJSON(address) {
 }
 
 /**
+ * Fetches all pages from GitHub(-like) JSON API, where
+ * the address of the next page response is contained
+ * in the Link header:
+ *
+ * Link: <https://api.github.com/user/repos?page=3&per_page=100>; rel="next",
+ *       <https://api.github.com/user/repos?page=50&per_page=100>; rel="last"
+ *
+ * @param {string} address - requested URL (must start with `https://`)
+ */
+function fetchAllJSONPages(address) {
+    let results = [];
+
+    function fetchPage(address) {
+        return get(address, 'application/json').then(res => {
+            return streamToText(res).then(JSON.parse).then(json => {
+                results = results.concat(json);
+                // Extract next page link if it's there.
+                if (res.headers['link']) {
+                    const m = res.headers['link'].match(/<(https:\/\/.+)>;\s*rel=["']next["']/);
+                    if (m && m.length > 1) {
+                        // Have the link, fetch it.
+                        return fetchPage(m[1]);
+                    }
+                }
+                // This is the last page.
+                return results;
+            });
+        });
+    }
+
+    return fetchPage(address);
+}
+
+
+/**
  * Fetches file from the given address, creating a file
  * into the given file path.
  *
@@ -194,5 +229,6 @@ function fetchFile(address, filepath) {
 module.exports = {
     fetchText,
     fetchJSON,
+    fetchAllJSONPages,
     fetchFile
 };
