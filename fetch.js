@@ -168,27 +168,20 @@ function fetchJSON(address) {
  * @param {string} address - requested URL (must start with `https://`)
  */
 function fetchAllJSONPages(address) {
-    let results = [];
-
-    function fetchPage(address) {
-        return get(address, 'application/json').then(res => {
-            return streamToText(res).then(JSON.parse).then(json => {
-                results = results.concat(json);
-                // Extract next page link if it's there.
-                if (res.headers['link']) {
-                    const m = res.headers['link'].match(/<(https:\/\/.+)>;\s*rel=["']next["']/);
-                    if (m && m.length > 1) {
-                        // Have the link, fetch it.
-                        return fetchPage(m[1]);
-                    }
+    return get(address, 'application/json').then(res => {
+        return streamToText(res).then(JSON.parse).then(json => {
+            // Extract next page link if it's there.
+            if (res.headers['link']) {
+                const m = res.headers['link'].match(/<(https:\/\/.+)>;\s*rel=["']next["']/);
+                if (!m || m.length <= 1) {
+                    // This page is final.
+                    return json;
                 }
-                // This is the last page.
-                return results;
-            });
+                // Have one more page, fetch it.
+                return fetchAllJSONPages(m[1]).then(r => json.concat(r));
+            }
         });
-    }
-
-    return fetchPage(address);
+    });
 }
 
 

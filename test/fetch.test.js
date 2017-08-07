@@ -32,7 +32,10 @@ describe('Fetch', () => {
 
     it('should fetch multi-page JSON', () => {
         return fetchAllJSONPages('https://api.github.com/repos/dchest/tweetnacl-js/issues?state=closed')
-            .then(json => { expect(json).to.have.lengthOf.above(125) });
+            .then(json => {
+                console.log(`Paged JSON number of items: ${json.length}`);
+                expect(json).to.have.lengthOf.above(125);
+            });
     });
 
     it('should fetch a file', () => {
