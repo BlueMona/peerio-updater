@@ -131,13 +131,14 @@ class Updater extends EventEmitter {
         address = `https://api.github.com/repos/${address}/releases`;
 
         // Fetch info about latest release
-        console.log('Fetching', address);
         let promisedRelease;
         if (!this.allowPrerelease) {
             // No prereleases, so use a simple API endpoint which returns latest release.
+            console.log(`Fetching ${address}/latest`);
             promisedRelease = fetchJSON(address + '/latest');
         } else {
             // Prereleases require fetching all releases and finding the latest.
+            console.log(`Fetching ${address}`);
             promisedRelease = fetchAllJSONPages(address)
                 .then(releases => releases.reduce((newest, cur) => {
                     if (!newest || semver.gt(cur.tag_name, newest.tag_name)) {
