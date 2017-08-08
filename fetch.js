@@ -179,6 +179,8 @@ function fetchAllJSONPages(address) {
                 }
                 // Have one more page, fetch it.
                 return fetchAllJSONPages(m[1]).then(r => json.concat(r));
+            } else {
+                return json;
             }
         });
     });
