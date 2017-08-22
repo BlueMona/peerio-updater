@@ -100,6 +100,13 @@ async function install(updatePath, restart) {
         });
         autoUpdater.once('update-downloaded', () => {
             server.close();
+            // Delete original update file.
+            try {
+                fs.unlinkSync(updatePath);
+            } catch (err) {
+                console.error('Failed to delete update file');
+                // continue updating even if failed to delete
+            }
             // TODO: handle the case when we don't need to restart.
             autoUpdater.quitAndInstall();
         });
