@@ -36,10 +36,8 @@ const { app } = require('electron');
 async function install(updatePath, restart) {
     console.log('Installing update');
     const appImagePath = await getOriginalAppImagePath();
-    const desktopFileContents = await extractDesktopFileFromAppImage(updatePath);
     await setExecFlag(updatePath);
     await replaceFile(updatePath, appImagePath);
-    await patchDesktopFile(desktopFileContents);
     console.log('Update successfully installed');
     if (restart) {
         // TODO: doesn't work: prevents this instance from quitting
@@ -101,89 +99,6 @@ function replaceFile(src, dest) {
                 return;
             }
             fulfill(dest);
-        });
-    });
-}
-
-function extractDesktopFileFromAppImage(appImagePath) {
-    return new Promise((fulfill, reject) => {
-        const fileStream = fs.createReadStream(appImagePath);
-        let desktopFileContent = '';
-        fileStream
-            .on('data', (chunk) => {
-                let startIdx = -1;
-                if (desktopFileContent) {
-                    startIdx = 0;
-                } else {
-                    startIdx = chunk.indexOf('[Desktop Entry]');
-                }
-
-                if (startIdx === -1) {
-                    return;
-                }
-
-                const endIdx = chunk.indexOf('\0', startIdx);
-                if (endIdx === -1) {
-                    desktopFileContent += chunk.slice(startIdx).toString('utf8');
-                } else {
-                    desktopFileContent += chunk.slice(startIdx, endIdx).toString('utf8');
-                    fileStream.destroy();
-                }
-            })
-            .on('close', function () {
-                if (desktopFileContent) {
-                    return fulfill(desktopFileContent);
-                }
-
-                reject('Could not read desktop shortcut in AppImage');
-            })
-            .on('error', reject);
-    });
-}
-
-function patchDesktopFile(desktopFileContent) {
-    const desktopFilePath = path.join(
-        process.env.HOME,
-        '.local',
-        'share',
-        'applications',
-        'appimagekit-' + path.basename(app.getPath('exe')) + '.desktop'
-    );
-
-    const VERSION_MATCH = /X-AppImage-Version=(\d+\.\d+\.\d+)/;
-    const BUNDLE_ID_MATCH = /X-AppImage-BuildId=([\w-]+)/;
-
-    console.log('Patching desktop file ' + desktopFilePath);
-
-    const version = desktopFileContent.match(VERSION_MATCH)[1];
-    const bundleId = desktopFileContent.match(BUNDLE_ID_MATCH)[1];
-
-    if (!version || !bundleId) {
-        return Promise.reject('Error parsing a desktop file from new AppImage');
-    }
-
-    return new Promise((fulfill, reject) => {
-        if (!fs.existsSync(desktopFilePath)) {
-            console.log('Desktop file does not exist, not patching.');
-            return fulfill();
-        }
-
-        fs.readFile(desktopFilePath, 'utf8', (err, originalContent) => {
-            if (err) {
-                return reject(err);
-            }
-
-            originalContent = originalContent
-                .replace(VERSION_MATCH, 'X-AppImage-Version=' + version)
-                .replace(BUNDLE_ID_MATCH, 'X-AppImage-BuildId=' + bundleId);
-
-            fs.writeFile(desktopFilePath, originalContent, (err) => {
-                if (err) {
-                    return reject(err);
-                }
-                console.log('Patched desktop file to:\n', originalContent);
-                fulfill();
-            });
         });
     });
 }
