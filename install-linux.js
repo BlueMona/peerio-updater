@@ -57,7 +57,7 @@ function getOriginalAppImagePath() {
         if (!appImagePath) {
             return reject('It seems that the app is not in AppImage format');
         }
-        fs.access(appImagePath, fs.constants.W_OK, (err) => {
+        fs.access(appImagePath, fs.constants.F_OK, (err) => {
             if (err) {
                 return reject(`Cannot write update to ${appImagePath}`);
             }
@@ -70,6 +70,7 @@ function setExecFlag(filePath) {
     return new Promise((fulfill, reject) => {
         fs.access(filePath, fs.constants.X_OK, (err) => {
             if (!err) {
+                // Already executable.
                 return fulfill(filePath);
             }
             fs.chmod(filePath, '0755', (err) => {
