@@ -199,7 +199,6 @@ function fetchFile(address, filepath) {
     return get(address)
         .then(res => new Promise((fulfill, reject) => {
             const file = fs.createWriteStream(filepath);
-            res.pipe(file);
             res.on('error', err => {
                 // reading error
                 file.close();
@@ -218,6 +217,7 @@ function fetchFile(address, filepath) {
             file.on('finish', () => {
                 fulfill(filepath);
             });
+            res.pipe(file);
         }));
 }
 
