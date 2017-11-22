@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/PeerioTechnologies/peerio-updater#readme",
   "peerDependencies": {
-    "electron": "1.7.6"
+    "electron": "1.7.9"
   },
   "devDependencies": {
     "@types/node": "8.0.0",
