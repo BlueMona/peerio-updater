@@ -9,6 +9,13 @@ const { app } = require('electron');
 async function install(updatePath, restart) {
     console.log('Installing update');
     const appPath = getOriginalAppPath();
+    console.log('Extracting ZIP file');
+    await unzip(updatePath);
+    // Extracted path name is .zip directory + original .app filename
+    // This means that ZIP must contain the same app name as original
+    // for the update to work.
+    const appUpdatePath = path.join(path.dirname(updatePath), path.basename(appPath));
+    console.log('Dropping quarantine');
     await dropQuarantine(updatePath);
 
     // Check if we need to elevate privileges to replace file.
@@ -42,9 +49,22 @@ function getOriginalAppPath() {
     return path.dirname(path.dirname(path.dirname(app.getPath('exe'))));
 }
 
+function unzip(zipPath) {
+    return new Promise((fulfill, reject) => {
+        execFile('/usr/bin/unzip', ['-c', zipPath], (err, stdout, stderr) => {
+            if (stderr) console.error(stderr);
+            if (stdout) console.log(stdout);
+            if (err) {
+                return reject(err)
+            }
+            fulfill();
+        });
+    });
+}
+
 function dropQuarantine(filePath) {
     return new Promise((fulfill, reject) => {
-        execFile('/usr/bin/xattr', ['-c', filePath], (err, stdout, stderr) => {
+        execFile('/usr/bin/xattr', ['-d', '-r', 'com.apple.quarantine', filePath], (err, stdout, stderr) => {
             if (stderr) console.error(stderr);
             if (stdout) console.log(stdout);
             if (err) {
