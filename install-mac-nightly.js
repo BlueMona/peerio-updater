@@ -27,10 +27,10 @@ async function install(updatePath, restart) {
     }
     if (uid == null) {
         // No, we can just replace the file.
-        await replaceFile(updatePath, appPath);
+        await replaceFile(appUpdatePath, appPath);
     } else {
         // Yes, we need to elevate privileges.
-        await elevatePrivilegesAndReplaceFile(uid, updatePath, appPath);
+        await elevatePrivilegesAndReplaceFile(uid, appUpdatePath, appPath);
     }
     console.log('Update successfully installed');
     if (restart) {
