@@ -111,8 +111,13 @@ function replaceFile(src, dest) {
  */
 function elevatePrivilegesAndReplaceFile(uid, src, dest) {
     return new Promise((fulfill, reject) => {
-        const mv = shellescape(['mv', '-f', src, dest]);
-        exec(`osascript -e "do shell script \" ${mv}\" with administrator privileges"`, (err, stdout, stderr) => {
+        const mv = shellescape(['mv', '-f', src, dest]).replace(/"/g, '\"');
+        const qsrc = src.replace(/"/g, '\\"'); // escape for AppleScript
+        const qdst = dest.replace(/"/g, '\\"');  // escape for AppleScript
+        execFile('/usr/bin/osascript', [
+            '-e',
+            `do shell script "mv -f " & quoted form of "${qsrc}" & space & quoted form of "${qdst}" with administrator privileges`
+        ], (err, stdout, stderr) => {
             if (stderr) console.error(stderr);
             if (stdout) console.log(stdout);
             if (err) {
