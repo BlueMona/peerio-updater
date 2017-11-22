@@ -51,7 +51,9 @@ function getOriginalAppPath() {
 
 function unzip(zipPath) {
     return new Promise((fulfill, reject) => {
-        execFile('/usr/bin/unzip', ['-c', zipPath], (err, stdout, stderr) => {
+        execFile('/usr/bin/unzip', ['-q', '-o', zipPath], {
+            cwd: path.dirname(zipPath)
+        }, (err, stdout, stderr) => {
             if (stderr) console.error(stderr);
             if (stdout) console.log(stdout);
             if (err) {
