@@ -36,7 +36,7 @@ function init(config) {
     if (!config.version || !config.publicKeys || !config.manifests) {
         throw new Error('Malformed updater config');
     }
-    return new Updater(config.version, config.publicKeys, config.manifests);
+    return new Updater(config.version, config.publicKeys, config.manifests, config.nightly);
 }
 
 function getConfigFromPackageJSON() {
@@ -51,7 +51,8 @@ function getConfigFromPackageJSON() {
     return {
         version: pkg.version,
         publicKeys: pkg.updater.publicKeys,
-        manifests: pkg.updater.manifests
+        manifests: pkg.updater.manifests,
+        nightly: !!pkg.updater.nightly
     };
 }
 

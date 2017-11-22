@@ -28,8 +28,9 @@ class Updater extends EventEmitter {
      * @param {string} currentVersion semver version (1.0.0)
      * @param {Array<string>} publicKeys array of public keys for manifest verification
      * @param {Array<string>} manifestURLs array of manifest URLs as described above
+     * @param {boolean} nightly if true, uses a different "nightly" installer for Mac
      */
-    constructor(currentVersion, publicKeys, manifestURLs) {
+    constructor(currentVersion, publicKeys, manifestURLs, nightly = false) {
         super();
         currentVersion = semver.valid(currentVersion);
         if (!currentVersion) {
@@ -44,6 +45,7 @@ class Updater extends EventEmitter {
         this.currentVersion = currentVersion;
         this.manifestURLs = manifestURLs;
         this.publicKeys = publicKeys;
+        this.nightly = nightly;
         this.allowPrerelease = false;
         this.manifest = null;
         this.newVersion = null;
@@ -240,7 +242,11 @@ class Updater extends EventEmitter {
         let install;
         switch (process.platform) {
             case 'darwin':
-                install = require('./install-mac');
+                if (this.nightly) {
+                    install = require('./install-mac-nightly');
+                } else {
+                    install = require('./install-mac');
+                }
                 break;
             case 'win32':
                 install = require('./install-win');
