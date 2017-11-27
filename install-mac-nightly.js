@@ -149,8 +149,7 @@ function getDirectoryUidIfCannotModify(dir) {
             if (!stats.isDirectory()) {
                 return reject(new Error('Not a directory'));
             }
-            const { uid, gid } = os.userInfo();
-            fs.access(dir, fs.constants.W_OK, (err) => {
+            fs.access(dir, fs.constants.W_OK, err => {
                 if (err) {
                     // user can't write to this directory
                     fulfill(stats.uid);

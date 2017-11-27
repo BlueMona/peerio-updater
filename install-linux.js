@@ -165,19 +165,14 @@ function getDirectoryUidIfCannotModify(dir) {
             if (!stats.isDirectory()) {
                 return reject(new Error('Not a directory'));
             }
-            const { uid, gid } = os.userInfo();
-            if (
-                // Directory is owned by user and user can write to it.
-                (stats.uid == uid && ((stats.mode & fs.constants.S_IWUSR) === fs.constants.S_IWUSR)) ||
-                // or directory is owned by user's group and group can write to it.
-                (stats.gid == gid && ((stats.mode & fs.constants.S_IWGRP) === fs.constants.S_IWGRP)) ||
-                // or directory is world-writable
-                ((stats.mode & fs.constants.S_IWOTH) === fs.constants.S_IWOTH)
-            ) {
-                fulfill(null); // user can modify directory
-            } else {
-                fulfill(stats.uid);
-            }
+            fs.access(dir, fs.constants.W_OK, err => {
+                if (err) {
+                    // user can't write to this directory
+                    fulfill(stats.uid);
+                    return;
+                }
+                fulfill(null); // user can write to this directory
+            });
         })
     });
 }
