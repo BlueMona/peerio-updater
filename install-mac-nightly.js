@@ -117,7 +117,7 @@ function elevatePrivilegesAndReplaceFile(uid, src, dest) {
         const qdst = dest.replace(/"/g, '\\"');  // escape for AppleScript
         execFile('/usr/bin/osascript', [
             '-e',
-            `do shell script "rm -rf " & quoted form of "${qdst}" & "&& mv -f " & quoted form of "${qsrc}" & space & quoted form of "${qdst}" with administrator privileges`
+            `do shell script "rm -rf " & quoted form of "${qdst}" & " && mv -f " & quoted form of "${qsrc}" & space & quoted form of "${qdst}" with administrator privileges`
         ], (err, stdout, stderr) => {
             if (stderr) console.error(stderr);
             if (stdout) console.log(stdout);
