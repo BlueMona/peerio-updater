@@ -25,6 +25,11 @@ async function install(updatePath, restart) {
     } catch (e) {
         console.error(e); // stat failed? will just try to replace it
     }
+    if (appPath === "" || appPath === "/" || !appPath.endsWith(".app")) {
+        // For safety.
+        console.error("Bad app path; aborting.");
+        return;
+    }
     if (uid == null) {
         // No, we can just replace the file.
         await replaceFile(appUpdatePath, appPath);
@@ -79,19 +84,16 @@ function dropQuarantine(filePath) {
 
 function replaceFile(src, dest) {
     return new Promise((fulfill, reject) => {
-        fs.rename(src, dest, (err) => {
+        // Rename syscall doesn't work for overwriting directories,
+        // so we need to remove destination directory first.
+        // This is not atomic :-(
+        const rm = shellescape(['rm', '-rf', dest]);
+        const mv = shellescape(['mv', '-f', src, dest])
+        exec(`${rm} && ${mv}`, (err, stdout, stderr) => {
+            if (stderr) console.error(stderr);
+            if (stdout) console.log(stdout);
             if (err) {
-                // Files are probably on a different filesystem, so rename
-                // syscall doesn't work. Try renaming using /bin/mv.
-                execFile('/bin/mv', ['-f', src, dest], (err, stdout, stderr) => {
-                    if (stderr) console.error(stderr);
-                    if (stdout) console.log(stdout);
-                    if (err) {
-                        return reject(err)
-                    }
-                    fulfill(dest);
-                });
-                return;
+                return reject(err)
             }
             fulfill(dest);
         });
@@ -111,12 +113,11 @@ function replaceFile(src, dest) {
  */
 function elevatePrivilegesAndReplaceFile(uid, src, dest) {
     return new Promise((fulfill, reject) => {
-        const mv = shellescape(['mv', '-f', src, dest]).replace(/"/g, '\"');
         const qsrc = src.replace(/"/g, '\\"'); // escape for AppleScript
         const qdst = dest.replace(/"/g, '\\"');  // escape for AppleScript
         execFile('/usr/bin/osascript', [
             '-e',
-            `do shell script "mv -f " & quoted form of "${qsrc}" & space & quoted form of "${qdst}" with administrator privileges`
+            `do shell script "rm -rf " & quoted form of "${qdst}" & "&& mv -f " & quoted form of "${qsrc}" & space & quoted form of "${qdst}" with administrator privileges`
         ], (err, stdout, stderr) => {
             if (stderr) console.error(stderr);
             if (stdout) console.log(stdout);
