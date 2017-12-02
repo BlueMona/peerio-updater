@@ -88,7 +88,7 @@ function replaceFile(src, dest) {
         // so we need to remove destination directory first.
         // This is not atomic :-(
         const rm = shellescape(['rm', '-rf', dest]);
-        const mv = shellescape(['mv', '-f', src, dest])
+        const mv = shellescape(['mv', '-f', src, dest]);
         exec(`${rm} && ${mv}`, (err, stdout, stderr) => {
             if (stderr) console.error(stderr);
             if (stdout) console.log(stdout);
