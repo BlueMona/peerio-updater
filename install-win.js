@@ -65,10 +65,9 @@ async function install(updatePath, restart) {
         console.log('Quitting');
         if (failed && restart) {
             // Failed to install update, so start the same version.
-            app.restart();
-        } else {
-            app.quit();
+            app.relaunch();
         }
+        app.quit();
     });
 }
 
