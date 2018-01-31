@@ -54,14 +54,9 @@ async function install(updatePath, restart) {
         await elevatePrivilegesAndReplaceFile(uid, updatePath, appImagePath);
     }
     console.log('Update successfully installed');
-    if (restart) {
-        // TODO: doesn't work: prevents this instance from quitting
-        // so comment-out until we find a way.
-        // console.log('Launching updated instance');
-        // launchDetachedInstance(appImagePath);
-    }
     setTimeout(() => {
         console.log('Quitting');
+        // Note: restaring is not handled here, in the hook, it's scheduled in updater.js.
         app.quit();
     });
 }
@@ -175,15 +170,6 @@ function getDirectoryUidIfCannotModify(dir) {
             });
         })
     });
-}
-
-function launchDetachedInstance(programPath) {
-    const child = spawn('setsid', [programPath], {
-        cwd: process.cwd(),
-        detached: true,
-        stdio: 'ignore'
-    });
-    child.unref();
 }
 
 // Copied from

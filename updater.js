@@ -262,9 +262,17 @@ class Updater extends EventEmitter {
 
     quitAndInstall() {
         this.restart = true;
+
         this._setupExitHook();
         if (process.versions && process.versions.electron) {
             const { app } = require('electron');
+            if (process.platform === 'linux') {
+                // On Linux, we need to schedule restart here due to AppImage quirks.
+                app.relaunch({
+                    args: process.argv.slice(1),
+                    execPath: process.env.APPIMAGE
+                });
+            }
             app.quit();
         } else {
             process.exit(0);
