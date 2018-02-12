@@ -25,34 +25,39 @@ class Updater extends EventEmitter {
      * or a GitHub repository 'github:username/repo',
      * which must contain MANIFEST_FILENAME in release assets.
      *
-     * @param {string} currentVersion semver version (1.0.0)
-     * @param {Array<string>} publicKeys array of public keys for manifest verification
-     * @param {Array<string>} manifestURLs array of manifest URLs as described above
-     * @param {boolean} nightly if true, uses a different "nightly" installer for Mac
+     * Accepts options argument with the following parameters:
+     *
+     * @typedef {Object} Config
+     * @property {string} version current semver version (1.0.0)
+     * @property {Array<string>} publicKeys public keys for manifest verification
+     * @property {Array<string>} manifests manifest URLs as described above
+     * @property {boolean} nightly if true, uses a different "nightly" installer for Mac
+     *
+     * @param {Config} config updater configuration
      */
-    constructor(currentVersion, publicKeys, manifestURLs, nightly = false) {
+    constructor(config) {
         super();
-        currentVersion = semver.valid(currentVersion);
-        if (!currentVersion) {
-            throw new Error(`Not a valid semver version: ${currentVersion}`);
+        this.currentVersion = semver.valid(config.version);
+        if (!this.currentVersion) {
+            throw new Error(`Not a valid semver version: ${this.currentVersion}`);
         }
-        if (manifestURLs.length === 0) {
+        this.manifestURLs = config.manifests;
+        if (this.manifestURLs.length === 0) {
             throw new Error('No manifest URLs given');
         }
-        if (publicKeys.length === 0) {
+        this.publicKeys = config.publicKeys;
+        if (this.publicKeys.length === 0) {
             throw new Error('No public keys given');
         }
-        this.currentVersion = currentVersion;
-        this.manifestURLs = manifestURLs;
-        this.publicKeys = publicKeys;
-        this.nightly = nightly;
+        this.nightly = !!config.nightly;
         this.allowPrerelease = false;
         this.manifest = null;
         this.newVersion = null;
         this.downloadedFile = null;
+        this.autoInstall = true;
+
         this.checking = false;
         this.downloading = false;
-        this.autoInstall = true;
     }
 
     /**
