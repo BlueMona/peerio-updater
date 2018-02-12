@@ -121,7 +121,7 @@ async function install(updatePath, restart, deleteAfterInstall) {
         setTimeout(() => {
             if (restart) {
                 // Failed to install update, so start the same version.
-                app.restart();
+                app.relaunch();
             } else {
                 app.quit();
             }
