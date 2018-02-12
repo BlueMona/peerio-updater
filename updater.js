@@ -229,7 +229,7 @@ class Updater extends EventEmitter {
             .then(() => {
                 this.downloading = false;
                 this.downloadedFile = tmpfile;
-                this.emit('update-downloaded', this.downloadedFile);
+                this.emit('update-downloaded', this.downloadedFile, this.manifest);
                 if (this.autoInstall) {
                     // setup exit hook to install this update
                     this._setupExitHook();
