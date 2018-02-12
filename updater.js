@@ -296,7 +296,7 @@ class Updater extends EventEmitter {
             default:
                 throw new Error('Unknown platform ' + currentPlatform());
         }
-        install(this.downloadedFile, !!this.restart);
+        install(this.downloadedFile, !!this.restart, this.deleteAfterInstall);
     }
 
     quitAndInstall() {

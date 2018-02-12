@@ -32,7 +32,7 @@ const fs = require('fs');
 const http = require('http');
 const { app, autoUpdater } = require('electron');
 
-async function install(updatePath, restart) {
+async function install(updatePath, restart, deleteAfterInstall) {
     console.log('Installing update');
 
     // We use the build-in updater for Mac installation for now, by creating a
@@ -102,7 +102,9 @@ async function install(updatePath, restart) {
             server.close();
             // Delete original update file.
             try {
-                fs.unlinkSync(updatePath);
+                if (deleteAfterInstall) {
+                    fs.unlinkSync(updatePath);
+                }
             } catch (err) {
                 console.error('Failed to delete update file');
                 // continue updating even if failed to delete
