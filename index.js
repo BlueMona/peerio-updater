@@ -31,6 +31,15 @@ or in package.json
 
 */
 
+/**
+ * Initializes updater and returns it.
+ *
+ * @typedef {Object} Config
+ * @property {string} version current semver version (1.0.0)
+ * @property {Array<string>} publicKeys public keys for manifest verification
+ * @property {Array<string>} manifests manifest URLs as described above
+ * @property {boolean} nightly if true, uses a different "nightly" installer for Mac
+ */
 function init(config) {
     if (!config) config = getConfigFromPackageJSON();
     if (!config.version || !config.publicKeys || !config.manifests) {

@@ -191,5 +191,4 @@ function shellescape(a) {
     return ret.join(' ');
 }
 
-
 module.exports = install;

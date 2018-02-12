@@ -4,6 +4,7 @@ const path = require('path');
 const os = require('os');
 const crypto = require('crypto');
 const EventEmitter = require('events').EventEmitter;
+const mkdirp = require('mkdirp');
 const { fetchJSON, fetchAllJSONPages, fetchText, fetchFile } = require('./fetch');
 const { verifyHash } = require('./hash');
 const { verifySize } = require('./size');
@@ -27,13 +28,13 @@ class Updater extends EventEmitter {
      *
      * Accepts options argument with the following parameters:
      *
-     * @typedef {Object} Config
+     * @typedef {Object} UpdaterConfig
      * @property {string} version current semver version (1.0.0)
      * @property {Array<string>} publicKeys public keys for manifest verification
      * @property {Array<string>} manifests manifest URLs as described above
      * @property {boolean} nightly if true, uses a different "nightly" installer for Mac
      *
-     * @param {Config} config updater configuration
+     * @param {UpdaterConfig} config updater configuration
      */
     constructor(config) {
         super();
@@ -58,6 +59,27 @@ class Updater extends EventEmitter {
 
         this.checking = false;
         this.downloading = false;
+
+        this._directory = path.join(os.tmpdir(), 'peerio-updates');
+        this.deleteAfterInstall = true;
+    }
+
+    /**
+     * Sets directory for storing downloads.
+     *
+     * @param {string} directory directory for downloads
+     * @param {boolean} deleteAfterInstall=true if false, do not delete downloaded file after installation
+     */
+    setDownloadsDirectory(directory, deleteAfterInstall = true) {
+        this._directory = directory;
+        this.deleteAfterInstall = deleteAfterInstall;
+    }
+
+    /**
+     * Returns directory for storing downloads.
+     */
+    getDownloadsDirectory() {
+        return this._directory;
     }
 
     /**
@@ -194,14 +216,14 @@ class Updater extends EventEmitter {
         if (address == null || size == null || hash == null) {
             return Promise.reject(new Error('No file in manifest for the current platform'));
         }
-        // TODO: check if there's a better temporary location to use
         const tmpfile = path.join(
-            os.tmpdir(),
-            `peerio-updater-${crypto.randomBytes(10).toString('hex')}.tmp`
+            this._directory,
+            `peerio-update-${crypto.randomBytes(10).toString('hex')}.tmp`
         );
         this.downloading = true;
         console.log('Fetching file', address);
-        return fetchFile(address, tmpfile)
+        return this._createDownloadsDirectory()
+            .then(() => fetchFile(address, tmpfile))
             .then(() => verifySize(size, tmpfile))
             .then(() => verifyHash(hash, tmpfile))
             .then(() => {
@@ -239,6 +261,18 @@ class Updater extends EventEmitter {
         }
         console.log('Set up before-quit hook');
         this._exitHookInstalled = true;
+    }
+
+    _createDownloadsDirectory() {
+        return new Promise((fulfill, reject) => {
+            mkdirp(this._directory, (err) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                fulfill(this._directory);
+            });
+        });
     }
 
     _install() {
