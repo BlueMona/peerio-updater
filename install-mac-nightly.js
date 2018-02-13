@@ -6,11 +6,7 @@ const os = require('os');
 const { execFile, exec, spawn } = require('child_process');
 const { app } = require('electron');
 
-/**
- * Note: deleteAfterInstall is ignored, because we always move
- * the .app into the original location, not copy.
- */
-async function install(updatePath, restart, deleteAfterInstall) {
+async function install(updatePath, restart) {
     console.log('Installing update');
     const appPath = getOriginalAppPath();
     console.log('Extracting ZIP file');

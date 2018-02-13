@@ -34,15 +34,7 @@ const os = require('os');
 const { execFile, exec, spawn } = require('child_process');
 const { app } = require('electron');
 
-/**
- * Note: delete after install argument is ignored on Linux,
- * since the downloaded AppImage always replaces the existing one.
- * It's faster than copying and keeping another copy.
- * Successful replacement should not result in update failure,
- * while unsuccessful replacement will keep the file in the
- * original location.
- */
-async function install(updatePath, restart, deleteAfterInstall) {
+async function install(updatePath, restart) {
     console.log('Installing update');
     const appImagePath = await getOriginalAppImagePath();
     await setExecFlag(updatePath);

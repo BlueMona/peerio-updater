@@ -32,12 +32,7 @@ const path = require('path');
 const { spawn } = require('child_process');
 const { app } = require('electron');
 
-/**
- * Note: on Windows, deleteAfterInstall is ignored, since we
- * launch the installer and quit, thus we cannot delete the file.
- * Deletion must be handled by the newly launched app version.
- */
-async function install(updatePath, restart, deleteAfterInstall) {
+async function install(updatePath, restart) {
     console.log('Installing update');
     const args = ['--updated', '/S'];
     if (restart) {

@@ -20,7 +20,6 @@ const MIN_INTERVAL = 15 * 60 * 1000; // 15 minutes
 
 class Updater extends EventEmitter {
     /**
-     *
      * A manifest URL can be an actual URL to manifest,
      * e.g. https://example.com/latest-manifest.txt
      * or a GitHub repository 'github:username/repo',
@@ -61,18 +60,15 @@ class Updater extends EventEmitter {
         this.downloading = false;
 
         this._directory = path.join(os.tmpdir(), 'peerio-updates');
-        this.deleteAfterInstall = true;
     }
 
     /**
      * Sets directory for storing downloads.
      *
      * @param {string} directory directory for downloads
-     * @param {boolean} deleteAfterInstall=true if false, do not delete downloaded file after installation
      */
-    setDownloadsDirectory(directory, deleteAfterInstall = true) {
+    setDownloadsDirectory(directory) {
         this._directory = directory;
-        this.deleteAfterInstall = deleteAfterInstall;
     }
 
     /**
@@ -296,7 +292,7 @@ class Updater extends EventEmitter {
             default:
                 throw new Error('Unknown platform ' + currentPlatform());
         }
-        install(this.downloadedFile, !!this.restart, this.deleteAfterInstall);
+        install(this.downloadedFile, !!this.restart);
     }
 
     quitAndInstall() {
