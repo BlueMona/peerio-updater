@@ -51,7 +51,6 @@ class Updater extends EventEmitter {
         }
         this.nightly = !!config.nightly;
         this.allowPrerelease = false;
-        this.manifest = null;
         this.newVersion = null;
         this.downloadedFile = null;
         this.autoInstall = true;
@@ -98,7 +97,7 @@ class Updater extends EventEmitter {
                 if (manifest && manifest.isNewerVersionThan(this.currentVersion)) {
                     console.log(`Updater: new version ${manifest.version}`);
                     this.newVersion = manifest;
-                    this.emit('update-available', this.manifest);
+                    this.emit('update-available', this.newVersion);
                     this._download(); // start download automatically
                 } else {
                     this.emit('update-not-available');
@@ -225,7 +224,7 @@ class Updater extends EventEmitter {
             .then(() => {
                 this.downloading = false;
                 this.downloadedFile = tmpfile;
-                this.emit('update-downloaded', this.downloadedFile, this.manifest);
+                this.emit('update-downloaded', this.downloadedFile, this.newVersion);
                 if (this.autoInstall) {
                     // setup exit hook to install this update
                     this._setupExitHook();
@@ -261,7 +260,7 @@ class Updater extends EventEmitter {
 
     _createDownloadsDirectory() {
         return new Promise((fulfill, reject) => {
-            mkdirp(this._directory, (err) => {
+            mkdirp(this._directory, err => {
                 if (err) {
                     reject(err);
                     return;
