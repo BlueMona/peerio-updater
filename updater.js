@@ -381,6 +381,7 @@ class Updater extends EventEmitter {
     didLastUpdateFail() {
         return this._readUpdateInfoFile()
             .then(info => {
+                console.log('Found update installation info', info);
                 // If we're running the same version as one before updating,
                 // the update failed.
                 return (info && (info.currentVersion === this.currentVersion));
@@ -388,6 +389,7 @@ class Updater extends EventEmitter {
             .catch(err => {
                 // If there's an error (file doesn't exist, can't be read,
                 // or JSON can't be parsed), we assume update succeeded.
+                console.log('Update succeeded');
                 return false;
             });
     }
@@ -399,6 +401,7 @@ class Updater extends EventEmitter {
      * Will ignore any filesystem errors, as this is best-effort.
      */
     async cleanup() {
+        console.log('Update is running cleanup');
         let info;
         try {
             info = await this._readUpdateInfoFile();
@@ -411,11 +414,12 @@ class Updater extends EventEmitter {
             // Delete old downloaded update file.
             // Make sure the file is inside our downloads
             // directory, for safety.
-            if (!info.updateFile.startsWith(this._directory)) {
-                return;
+            if (info.updateFile.startsWith(this._directory)) {
+                console.log('Deleting update file:', info.updateFile);
+                await deleteFile(info.updateFile);
             }
-            await deleteFile(info.updateFile);
             // Delete update info.
+            console.log('Deleting update info:', this._getUpdateInfoFilePath());
             await deleteFile(this._getUpdateInfoFilePath());
         } catch (err) {
             console.error('Cleanup failed:', err);
@@ -526,7 +530,7 @@ class Updater extends EventEmitter {
 }
 
 function deleteFile(filename) {
-    return Promise.resolve((fulfill, reject) => {
+    return new Promise((fulfill, reject) => {
         fs.unlink(filename, err => {
             if (err) {
                 reject(err);
