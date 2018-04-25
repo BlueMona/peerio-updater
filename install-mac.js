@@ -119,6 +119,7 @@ async function install(updatePath, restart) {
             if (restart) {
                 // Failed to install update, so start the same version.
                 app.relaunch();
+                app.exit(0);
             } else {
                 app.quit();
             }
