@@ -453,6 +453,12 @@ class Updater extends EventEmitter {
         install(this.downloadedFile, !!this.restart);
     }
 
+    async scheduleInstallOnQuit() {
+        this.restart = false;
+        await this._rememberInstallAttempt();
+        this._setupExitHook();
+    }
+
     /**
      * Installs the update and restarts the app.
      */
