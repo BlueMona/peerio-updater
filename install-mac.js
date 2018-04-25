@@ -100,8 +100,14 @@ async function install(updatePath, restart) {
         });
         autoUpdater.once('update-downloaded', () => {
             server.close();
-            // TODO: handle the case when we don't need to restart.
-            autoUpdater.quitAndInstall();
+            if (restart) {
+                autoUpdater.quitAndInstall();
+            } else {
+                // According to
+                // https://github.com/electron/electron/issues/10903#issuecomment-339310420
+                // just quitting the app will install the update.
+                app.quit();
+            }
         });
         autoUpdater.checkForUpdates();
     });
