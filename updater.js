@@ -127,7 +127,12 @@ class Updater extends EventEmitter {
     async _downloadUpdate(platform) {
         try {
             await this._download()
-            this.emit('update-downloaded', this.downloadedFile, this.newVersion);
+            this.emit(
+                'update-downloaded',
+                this.downloadedFile,
+                this.newVersion,
+                this.newVersion.isMandatorySince(this.currentVersion)
+            );
         } catch (err) {
             this.emit('error', err);
         }
