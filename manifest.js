@@ -12,7 +12,8 @@ const COMMENT = 'Peerio Updater manifest';
 
 // Update urgency constants.
 const URGENCY_MANDATORY = 'mandatory'; // default
-const URGENCY_OPTIONAL = 'optional';
+const URGENCY_OPTIONAL_SINCE = 'optional since';
+const URGENCY_OPTIONAL_SINCE_RX = /^optional since (.+)$/;
 
 class Manifest {
     /**
@@ -43,6 +44,31 @@ class Manifest {
 
     set urgency(value) {
         this.data.urgency = value;
+    }
+
+    // Gets a version since which the update is optional or null.
+    get optionalSince() {
+        if (!this.urgency || this.urgency === URGENCY_MANDATORY) {
+            return null;
+        }
+        // Parse "optional since x.y.z"...
+        let m = this.urgency.match(URGENCY_OPTIONAL_SINCE_RX);
+        if (!m || m.length < 2) {
+            return null;
+        }
+        // ...and return x.y.z if it's a valid version
+        // (otherwise it will return null)
+        return semver.valid(m[1]);
+    }
+
+    // Sets a version since which the update is optional,
+    // that is the last mandatory version.
+    set optionalSince(version) {
+        const v = semver.valid(version);
+        if (!v) {
+            throw new Error(`Invalid version ${version}`);
+        }
+        this.urgency = URGENCY_OPTIONAL_SINCE + ' ' + v;
     }
 
     get date() {
@@ -112,12 +138,34 @@ class Manifest {
 
     // Helpers
 
-    get isMandatory() {
+    makeMandatory() {
+        this.urgency = URGENCY_MANDATORY;
+    }
+
+    isMandatory() {
         return this.urgency === URGENCY_MANDATORY;
     }
 
-    set isMandatory(value) {
-        this.urgency = value ? URGENCY_MANDATORY : URGENCY_OPTIONAL;
+    isMandatorySince(currentVersion) {
+        if (this.isMandatory()) {
+            return true;
+        }
+        const lastMandatoryVersion = this.optionalSince;
+        if (!lastMandatoryVersion) {
+            // Huh... make it mandatory anyway.
+            return true;
+        }
+        // Consider releases:
+        //
+        // 1.0.0
+        // 1.1.0 - mandatory
+        // 1.2.0 - optional
+        //
+        // If updating from 1.0.0 to 1.2.0, last mandatory
+        // is 1.1.0, and since 1.0.0 < 1.1.0, the update is mandatory.
+        // If updating from 1.1.0, last mandatory is 1.1.0, which
+        // is not less than current version, so the update is optional.
+        return semver.lt(currentVersion, lastMandatoryVersion);
     }
 
     isNewerVersionThan(currentVersion) {

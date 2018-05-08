@@ -11,7 +11,7 @@ describe('Manifest', () => {
         m.version = '1.2.3';
         m.date = new Date();
         m.changelog = 'https://example.com/changelog';
-        m.isMandatory = true;
+        m.makeMandatory();
         m.setFile('mac', 'https://example.com/file-mac.zip');
         m.setSha512('mac', '876811d9f53cbbf8be653a37ac6b53d3dfd401c9dfecf202a1875997548455ed3ad0f52d0503af79a6c730c5074d125df7de19e40380a4a3c03568ad831a82e4');
         m.setSize('mac', 1024);
@@ -39,5 +39,32 @@ describe('Manifest', () => {
         expect(p.isNewerVersionThan('1.2.0')).to.equal(true);
         expect(p.isNewerVersionThan('1.2.3')).to.equal(false);
         expect(p.isNewerVersionThan('1.2.4')).to.equal(false);
+        expect(p.isMandatory()).to.equal(true);
+    });
+
+    it('should handle optional since properly', () => {
+        const keys = generateKeyPair();
+        const m = new Manifest();
+        m.version = '1.2.0';
+        m.date = new Date();
+        m.changelog = 'https://example.com/changelog';
+        m.optionalSince = '1.1.0';
+        m.setFile('mac', 'https://example.com/file-mac.zip');
+        m.setSha512('mac', '876811d9f53cbbf8be653a37ac6b53d3dfd401c9dfecf202a1875997548455ed3ad0f52d0503af79a6c730c5074d125df7de19e40380a4a3c03568ad831a82e4');
+        m.setSize('mac', 1024);
+
+        const serialized = m.serialize(keys.secretKey);
+
+        console.log('---\n' + serialized + '\n----');
+        expect(serialized).to.be.a('string');
+
+        const p = Manifest.loadFromString([keys.publicKey], serialized);
+        console.log(p.data);
+        expect(p.isMandatory()).to.equal(false);
+        expect(p.optionalSince).to.equal('1.1.0');
+        expect(p.isMandatorySince('1.0.0')).to.equal(true);
+        expect(p.isMandatorySince('1.0.1')).to.equal(true);
+        expect(p.isMandatorySince('1.1.0')).to.equal(false);
+        expect(p.isMandatorySince('1.1.1')).to.equal(false);
     });
 });
