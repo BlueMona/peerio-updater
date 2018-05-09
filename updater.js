@@ -61,7 +61,6 @@ class Updater extends EventEmitter {
         this.allowPrerelease = false;
         this.newVersion = null;
         this.downloadedFile = null;
-        this.autoInstall = true;
 
         this.checking = false;
         this.downloading = false;
@@ -282,10 +281,6 @@ class Updater extends EventEmitter {
             await verifyHash(hash, tmpfile);
             this.downloading = false;
             this.downloadedFile = tmpfile;
-            if (this.autoInstall) {
-                // setup exit hook to install this update
-                this._setupExitHook();
-            }
             return tmpfile;
         } catch (err) {
             this.downloading = false;

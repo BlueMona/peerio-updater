@@ -11,7 +11,6 @@ describe('Updater', () => {
             // secret key: RWQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJz9MEdpVP/1mSs9OkM8MtQtUSSaMApafaQk4MTVEts9mp7HzG9BcC+nVJZ/cX46rbXEFq83KMLF1yPCmdpuzr3STbLv7RIm6vJc54q16XCs=
             manifests: ['github:dchest/updater-test-repo']
         });
-        updater.autoInstall = false;
         updater.on('update-available', () => {
             console.log('Update available:', updater.newVersion);
         });
