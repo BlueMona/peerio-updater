@@ -6,7 +6,7 @@ const fs = require('fs');
  * it to the provided one.
  *
  * Returns a promise which rejects if the size is
- * incorrect, otherwise resolves to filepath.
+ * incorrect, otherwise resolves to true.
  *
  * @param {number} correctSize expected file size
  * @param {string} filepath file path

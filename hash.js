@@ -7,7 +7,7 @@ const fs = require('fs');
  * it to the provided correctHash.
  *
  * Returns a promise which rejects if the hash is
- * incorrect, otherwise resolves to filepath.
+ * incorrect, otherwise resolves to true.
  *
  * @param {string} correctHash expected hex-encoded SHA-512 hash
  * @param {string} filepath file path

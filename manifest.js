@@ -165,11 +165,20 @@ class Manifest {
         // is 1.1.0, and since 1.0.0 < 1.1.0, the update is mandatory.
         // If updating from 1.1.0, last mandatory is 1.1.0, which
         // is not less than current version, so the update is optional.
-        return semver.lt(currentVersion, lastMandatoryVersion);
+        //
+        // We strip '-staging', etc. from comparison and only care about numbers.
+        return semver.lt(
+            semver.valid(currentVersion).replace(/-.*$/, ''),
+            semver.valid(lastMandatoryVersion).replace(/-.*$/, '')
+        );
     }
 
     isNewerVersionThan(currentVersion) {
-        return semver.gt(this.version, currentVersion);
+        // We strip '-staging', etc. from comparison and only care about numbers.
+        return semver.gt(
+            semver.valid(this.version).replace(/-.*$/, ''),
+            semver.valid(currentVersion).replace(/-.*$/, '')
+        );
     }
 
     /**
