@@ -1,6 +1,6 @@
 {
   "name": "@peerio/updater",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "description": "Updater framework for Electron-based desktop apps",
   "main": "index.js",
   "scripts": {
