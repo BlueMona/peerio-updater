@@ -9,6 +9,9 @@ const MAX_RETRIES = 3;
 /** Maximum number of redirects to follow before fetching */
 const MAX_REDIRECTS = 10;
 
+/** HTTPS request timeout */
+const REQUEST_TIMEOUT = 60000; // 1 minute
+
 /** Maximum number of UTF-16 chars (not bytes!) allows in text or JSON response */
 const MAX_TEXT_LENGTH = 3 * 1024 * 1024;
 
@@ -40,10 +43,11 @@ function get(address, contentType, redirs = 0, tries = 0) {
         const { host, path } = url.parse(address);
         const options = {
             headers: { 'User-Agent': 'peerio-updater/1.0' },
+            timeout: REQUEST_TIMEOUT,
             host,
             path
         };
-        https.get(options, res => {
+        const req = https.get(options, res => {
             if (res.statusCode === 404) {
                 reject(new Error(`Not found: ${address}`));
                 return;
@@ -88,7 +92,9 @@ function get(address, contentType, redirs = 0, tries = 0) {
                 }
             }
             fulfill(res);
-        }).on('error', err => {
+        });
+
+        const handleError = err => {
             if (tries < MAX_RETRIES) {
                 fulfill(waitBeforeRetry(tries).then(() =>
                     get(address, contentType, 0, tries + 1))
@@ -96,6 +102,12 @@ function get(address, contentType, redirs = 0, tries = 0) {
             } else {
                 reject(new Error(`Request failed: ${err.message}`));
             }
+        };
+
+        req.on('error', handleError);
+        req.on('timeout', () => {
+            req.abort();
+            handleError(new Error('Request timed out'));
         });
     });
 }
