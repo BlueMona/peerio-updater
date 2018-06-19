@@ -65,6 +65,10 @@ class Updater extends EventEmitter {
         this.checking = false;
         this.downloading = false;
 
+        // Number of attempts to install the update.
+        // Read from file in failedInstallAttempts()
+        this.attempts = 0;
+
         this._directory = path.join(os.tmpdir(), 'peerio-updates');
     }
 
@@ -330,7 +334,7 @@ class Updater extends EventEmitter {
 
     _rememberInstallAttempt() {
         const info = {
-            attempts: 0, // TODO: implement attempt counter
+            attempts: this.attempts + 1,
             currentVersion: this.currentVersion,
             updateVersion: this.newVersion.version,
             updateSize: this.newVersion.getSize(),
@@ -373,24 +377,33 @@ class Updater extends EventEmitter {
     }
 
     /**
-     * Returns a promise resolving to true if previous update failed.
+     * Returns a promise resolving to 1 or more if previous update failed
+     * (indicating the number of install attempts), or 0 if update succeeded.
+     *
      * Should be used after starting a new version.
      *
-     * @returns {Promise<boolean>}
+     * @returns {Promise<number>}
      */
-    didLastUpdateFail() {
+    failedInstallAttempts() {
         return this._readUpdateInfoFile()
             .then(info => {
                 console.log('Found update installation info', info);
                 // If we're running the same version as one before updating,
                 // the update failed.
-                return (info && (info.currentVersion === this.currentVersion));
+                const failed = (info && (info.currentVersion === this.currentVersion));
+                if (failed) {
+                    this.attempts = info.attempts || 1;
+                    return this.attempts;
+                } else {
+                    // Succeeded.
+                    return 0;
+                }
             })
             .catch(err => {
                 // If there's an error (file doesn't exist, can't be read,
                 // or JSON can't be parsed), we assume update succeeded.
                 console.log('Update succeeded');
-                return false;
+                return 0;
             });
     }
 
