@@ -475,16 +475,10 @@ class Updater extends EventEmitter {
         this._setupExitHook();
     }
 
-    /**
-     * Installs the update and restarts the app.
-     */
-    async quitAndInstall() {
-        this.restart = true;
-        await this._rememberInstallAttempt();
-        this._setupExitHook();
+    _quit() {
         if (process.versions && process.versions.electron) {
             const { app } = require('electron');
-            if (process.platform === 'linux') {
+            if (this.restart && process.platform === 'linux') {
                 // On Linux, we need to schedule restart here,
                 // not in the hook, due to AppImage quirks.
                 app.relaunch({
@@ -499,13 +493,37 @@ class Updater extends EventEmitter {
     }
 
     /**
+     * Installs the update and restarts the app.
+     */
+    async quitAndInstall() {
+        this.restart = true;
+        await this._rememberInstallAttempt();
+        this._setupExitHook();
+        this._quit();
+    }
+
+    /**
      * Retries installing the downloaded update, or
      * redownloads the update, and restarts the app.
      */
     async quitAndRetryInstall(allowLocal = true) {
         try {
-            this.downloadedFile = await this._getValidUpdateFileOnDisk();
-            this.quitAndInstall();
+            const info = await this._getValidUpdateInfoOnDisk();
+            this.downloadedFile = info.updateFile;
+            info.attempts++;
+            await new Promise((fulfill, reject) => {
+                fs.writeFile(this._getUpdateInfoFilePath(), JSON.stringify(info), err => {
+                    if (err) {
+                        // Can't write install attempt for some reason.
+                        // Log the error and continue.
+                        console.error('Failed to write install attempt info: ', err);
+                    }
+                    fulfill();
+                });
+            });
+            this.restart = true;
+            this._setupExitHook();
+            this._quit();
         } catch (err) {
             // Try checking for and downloading the update.
             try {
@@ -522,21 +540,22 @@ class Updater extends EventEmitter {
                 await this._rememberInstallAttempt();
                 if (process.versions && process.versions.electron) {
                     const { app } = require('electron');
-                    app.relaunch(); // TODO: check if AppImage needs different execPath
-                    app.quit();
-                } else {
-                    process.exit(0); // won't relaunch if not in Electron (for tests)
+                    this.restart = true;
+                    if (process.platform !== 'linux') {
+                        app.relaunch(); // linux is handled by "_quit"
+                    }
                 }
+                this._quit();
             }
         }
     }
 
     /**
-     * Returns a promise resolving to the path of update file
-     * on disk if and only if it is valid according to info
+     * Returns a promise resolving to update file info on disk
+     * if and only if the mentioned in it file is valid according to info
      * stored in the update info file; otherwise, throws.
      */
-    async _getValidUpdateFileOnDisk() {
+    async _getValidUpdateInfoOnDisk() {
         let info = await this._readUpdateInfoFile();
         if (!info || !info.updateSize || !info.updateHash || !info.updateFile) {
             throw new Error('Invalid update info');
@@ -547,7 +566,7 @@ class Updater extends EventEmitter {
         if (!info.updateFile.startsWith(this._directory)) {
             throw new Error(`Invalid update file path: ${info.updateFile}`);
         }
-        return info.updateFile;
+        return info;
     }
 }
 
