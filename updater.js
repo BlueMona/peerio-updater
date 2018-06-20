@@ -538,7 +538,7 @@ class Updater extends EventEmitter {
      */
     async _getValidUpdateFileOnDisk() {
         let info = await this._readUpdateInfoFile();
-        if (!info || info.updateSize || !info.updateHash || !info.updateFile) {
+        if (!info || !info.updateSize || !info.updateHash || !info.updateFile) {
             throw new Error('Invalid update info');
         }
         await verifySize(info.updateSize, info.updateFile);
