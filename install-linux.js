@@ -31,7 +31,7 @@ SOFTWARE.
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { execFile, exec, spawn } = require('child_process');
+const { execFile, exec } = require('child_process');
 const { app } = require('electron');
 
 async function install(updatePath, restart) {
