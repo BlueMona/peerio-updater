@@ -21,12 +21,12 @@
   },
   "homepage": "https://github.com/PeerioTechnologies/peerio-updater#readme",
   "peerDependencies": {
-    "electron": "1.x.x"
+    "electron": "1.x.x || 2.x.x"
   },
   "devDependencies": {
     "@types/node": "8.0.0",
     "chai": "4.0.2",
-    "mocha": "3.4.2"
+    "mocha": "^5.2.0"
   },
   "dependencies": {
     "mkdirp": "0.5.1",

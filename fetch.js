@@ -36,7 +36,7 @@ function waitBeforeRetry(tryNum) {
  *
  * @param {string} address - requested URL (must start with `https://`)
  * @param {string?} [contentType] - expected content-type or undefined/null to not check it
- * @returns {Promise<http.IncomingMessage>}
+ * @returns {Promise<https.IncomingMessage>}
  */
 function get(address, contentType, redirs = 0, tries = 0) {
     return new Promise((fulfill, reject) => {
