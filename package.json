@@ -22,16 +22,16 @@
   },
   "homepage": "https://github.com/PeerioTechnologies/peerio-updater#readme",
   "peerDependencies": {
-    "electron": "1.x.x || 2.x.x"
+    "electron": "1.x.x || 2.x.x || 3.x.x"
   },
   "devDependencies": {
-    "@types/node": "8.0.0",
-    "chai": "4.0.2",
+    "@types/node": "10.11.3",
+    "chai": "4.2.0",
     "mocha": "^5.2.0"
   },
   "dependencies": {
     "mkdirp": "0.5.1",
-    "semver": "5.3.0",
+    "semver": "5.5.1",
     "tweetnacl": "1.0.0"
   }
 }
