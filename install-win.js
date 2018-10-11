@@ -47,6 +47,8 @@ async function install(updatePath, restart) {
         if (err.code === 'UNKNOWN' || err.code === 'EACCES') {
             console.log('Trying to install with elevated privileges');
             try {
+                // XXX: we don't pack elevate.exe anymore, so this is useless,
+                // but I'm keeping it here just in case we pack it again.
                 await _spawn(
                     path.join(process.resourcesPath, "elevate.exe"),
                     [updatePath].concat(args),
