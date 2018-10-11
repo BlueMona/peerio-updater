@@ -47,11 +47,11 @@ async function install(updatePath, restart) {
         if (err.code === 'UNKNOWN' || err.code === 'EACCES') {
             console.log('Trying to install with elevated privileges');
             try {
-                spawn(
+                await _spawn(
                     path.join(process.resourcesPath, "elevate.exe"),
                     [updatePath].concat(args),
                     { detached: true, stdio: 'ignore' }
-                ).unref();
+                );
             } catch (err) {
                 failed = true;
                 console.error('Failed to install update with elevated priveleges: ' + err.code);
@@ -69,6 +69,28 @@ async function install(updatePath, restart) {
         }
         app.quit();
     });
+}
+
+/**
+ * This handles both node 8 and node 10 way of emitting error when spawing a process
+ *   - node 8: Throws the error
+ *   - node 10: Emit the error(Need to listen with on)
+ */
+async function _spawn(exe, args, options) {
+    return new Promise((resolve, reject) => {
+        try {
+            const process = spawn(exe, args, options);
+            process.on('error', error => {
+                reject(error);
+            });
+            process.unref();
+            if (process.pid !== undefined) {
+                resolve(true);
+            }
+        } catch (error) {
+            reject(error);
+        }
+    })
 }
 
 module.exports = install;
