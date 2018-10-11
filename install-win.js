@@ -42,7 +42,7 @@ async function install(updatePath, restart) {
     // See https://github.com/electron-userland/electron-builder/blob/83ca284c4727bf48b45de56d27f9fe2da16e1b41/packages/electron-updater/src/NsisUpdater.ts#L203-L223
     let failed = false;
     try {
-        spawn(updatePath, args, { detached: true, stdio: 'ignore' }).unref();
+        await _spawn(updatePath, args, { detached: true, stdio: 'ignore' });
     } catch (err) {
         if (err.code === 'UNKNOWN' || err.code === 'EACCES') {
             console.log('Trying to install with elevated privileges');
