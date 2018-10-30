@@ -29,11 +29,19 @@ SOFTWARE.
 */
 
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const http = require('http');
+const rimraf = require('rimraf');
 const { app, autoUpdater } = require('electron');
 
 async function install(updatePath, restart) {
     console.log('Installing update');
+
+    if (restart) {
+        // Workaround for https://github.com/Squirrel/Squirrel.Mac/issues/204#issuecomment-434281202
+        await removeShipItCache();
+    }
 
     // We use the build-in updater for Mac installation for now, by creating a
     // local server serving update to it. This is what electron-updater does,
@@ -123,6 +131,17 @@ async function install(updatePath, restart) {
             } else {
                 app.quit();
             }
+        });
+    }
+
+    function removeShipItCache() {
+        return new Promise(resolve => {
+            rimraf(path.join(os.homedir(), 'Library', 'Caches', '.ShipIt'), { disableGlob: true }, err => {
+                if (err) {
+                    console.log('Failed to remove .ShipIt. No big deal.', err);
+                }
+                resolve();
+            });
         });
     }
 }
