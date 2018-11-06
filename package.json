@@ -25,14 +25,14 @@
     "electron": "1.x.x || 2.x.x || 3.x.x"
   },
   "devDependencies": {
-    "@types/node": "10.11.3",
+    "@types/node": "10.12.2",
     "chai": "4.2.0",
     "mocha": "^5.2.0"
   },
   "dependencies": {
     "mkdirp": "0.5.1",
     "rimraf": "2.6.2",
-    "semver": "5.5.1",
+    "semver": "5.6.0",
     "tweetnacl": "1.0.0"
   }
 }
